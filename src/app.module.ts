@@ -5,6 +5,7 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule } from '@nestjs/jwt';
 import { SystemModule } from './module/system/system.module';
+import { RedisModule } from './module/redis/redis.module';
 
 @Module({
   imports: [
@@ -20,7 +21,7 @@ import { SystemModule } from './module/system/system.module';
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
       entities: ['dist/**/*.entity{.ts,.js}'],
-      synchronize: false,
+      synchronize: true,
       poolSize: 10,
       connectorPackage: 'mysql2',
       logging: true,
@@ -34,6 +35,7 @@ import { SystemModule } from './module/system/system.module';
         expiresIn: Number(process.env.JWT_EXPIRES_IN),
       },
     }),
+    RedisModule,
     SystemModule,
   ],
   controllers: [AppController],

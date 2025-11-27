@@ -5,6 +5,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { Exclude } from 'class-transformer';
 
 @Entity()
 export class User {
@@ -13,23 +14,28 @@ export class User {
 
   @Column({
     comment: '用户名',
+    unique: true,
+    length: 20,
   })
   username: string;
 
   @Column({
     comment: '密码',
   })
+  @Exclude()
   password: string;
 
   @Column({
     comment: '邮箱',
+    nullable: true,
   })
-  email: string;
+  email?: string;
 
   @Column({
     comment: '手机号',
+    nullable: true,
   })
-  phone: string;
+  phone?: string;
 
   @Column({
     comment: '头像',

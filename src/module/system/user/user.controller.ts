@@ -1,11 +1,13 @@
-import { Controller, Post, Body, HttpStatus } from '@nestjs/common';
+import { Controller, Post, Body, HttpStatus, UseGuards } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UserDto } from './dto/user.dto';
-import { LoginUserDto } from './dto/login-user.dto';
 import { ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { AuthGuard } from '../auth/auth.guard';
+import { RequireLogin } from '@/utils/metadata';
 
 @ApiTags('用户管理模块')
 @Controller('user')
+@UseGuards(AuthGuard)
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
@@ -20,24 +22,15 @@ export class UserController {
     description: '用户注册成功/失败',
     type: String,
   })
-  @Post()
+  @Post('create')
+  @RequireLogin()
   create(@Body() userDto: UserDto) {
     return this.userService.create(userDto);
   }
 
-  @ApiBody({ type: LoginUserDto })
-  @ApiResponse({
-    status: HttpStatus.BAD_REQUEST,
-    description: '用户名不存在/密码错误',
-    type: String,
-  })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: '用户登录成功/失败',
-    type: String,
-  })
-  @Post('login')
-  login(@Body() loginUserDto: LoginUserDto) {
-    return this.userService.login(loginUserDto);
+  @Post('delete')
+  @RequireLogin()
+  delete(@Body('id') id: string) {
+    return this.userService.delete(id);
   }
 }

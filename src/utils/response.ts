@@ -1,3 +1,5 @@
+// src/utils/response.ts
+
 import {
   ArgumentsHost,
   CallHandler,
@@ -33,6 +35,12 @@ export class SuccessResponse<T> implements NestInterceptor {
   }
 }
 
+// 定义可能的异常响应结构
+interface ExceptionResponse {
+  message?: string | string[];
+  [key: string]: any;
+}
+
 export class ErrorResponse implements ExceptionFilter {
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
@@ -43,15 +51,31 @@ export class ErrorResponse implements ExceptionFilter {
         ? exception.getStatus()
         : HttpStatus.INTERNAL_SERVER_ERROR;
 
-    const exceptionResponse =
-      exception instanceof HttpException
-        ? exception.message
-        : 'Internal server error';
+    let message = 'Internal server error';
+    if (exception instanceof HttpException) {
+      const exceptionResponse = exception.getResponse();
+
+      // 使用类型守卫增强安全性
+      if (typeof exceptionResponse === 'object' && exceptionResponse !== null) {
+        const typedResponse = exceptionResponse as ExceptionResponse;
+        const validationErrors = typedResponse.message;
+
+        if (Array.isArray(validationErrors)) {
+          message = validationErrors.join('; ');
+        } else if (typeof validationErrors === 'string') {
+          message = validationErrors;
+        } else {
+          message = exception.message;
+        }
+      } else {
+        message = exception.message;
+      }
+    }
 
     response.status(status).json({
       code: status,
       success: false,
-      message: exceptionResponse,
+      message: message,
     });
   }
 }
